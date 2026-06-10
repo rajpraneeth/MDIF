@@ -4,6 +4,7 @@ App wiring, CORS, DB connectivity healthcheck, and the ``/api/v1`` domain router
 All responses — success and error — use the ``{ success, data, message }``
 envelope (PRD decision 4).
 """
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
@@ -14,11 +15,19 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+# Surface app loggers (e.g. engine adapter stub calls, §6) under uvicorn, which
+# otherwise leaves the root logger at WARNING and filters our INFO lines.
+logging.getLogger("mdif").setLevel(logging.INFO)
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO)
+
 from api.routers import (
     auth,
     connections,
     environments,
+    pipelines,
     requests,
+    runs,
     schema_objects,
     users,
 )
@@ -81,6 +90,8 @@ app.include_router(environments.router, prefix=api_v1)
 app.include_router(connections.router, prefix=api_v1)
 app.include_router(schema_objects.router, prefix=api_v1)
 app.include_router(requests.router, prefix=api_v1)
+app.include_router(pipelines.router, prefix=api_v1)
+app.include_router(runs.router, prefix=api_v1)
 
 
 @app.get("/health")
