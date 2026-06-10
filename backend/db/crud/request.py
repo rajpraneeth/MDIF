@@ -13,6 +13,18 @@ from db.models.ingestion_request import IngestionRequest
 
 
 class CRUDRequest(CRUDBase[IngestionRequest]):
+    async def get_by_title_env(
+        self, db: AsyncSession, title: str, env_id: uuid.UUID
+    ) -> IngestionRequest | None:
+        """Match a live request by ``title`` within an env — promotion idempotency key."""
+        stmt = (
+            select(IngestionRequest)
+            .where(IngestionRequest.title == title)
+            .where(IngestionRequest.env_id == env_id)
+            .where(IngestionRequest.deleted_at.is_(None))
+        )
+        return (await db.execute(stmt)).scalar_one_or_none()
+
     async def list_filtered(
         self,
         db: AsyncSession,

@@ -26,6 +26,7 @@ from api.routers import (
     connections,
     environments,
     pipelines,
+    promotions,
     requests,
     runs,
     schema_objects,
@@ -92,6 +93,7 @@ app.include_router(schema_objects.router, prefix=api_v1)
 app.include_router(requests.router, prefix=api_v1)
 app.include_router(pipelines.router, prefix=api_v1)
 app.include_router(runs.router, prefix=api_v1)
+app.include_router(promotions.router, prefix=api_v1)
 
 
 @app.get("/health")
