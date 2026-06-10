@@ -9,6 +9,9 @@ import { ADMIN_ONLY, DE_PLUS, type Role } from "@/types/auth";
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const PlaceholderPage = lazy(() => import("@/pages/PlaceholderPage"));
+const RequestsListPage = lazy(() => import("@/pages/requests/RequestsListPage"));
+const NewRequestPage = lazy(() => import("@/pages/requests/NewRequestPage"));
+const RequestDetailPage = lazy(() => import("@/pages/requests/RequestDetailPage"));
 
 function FullScreenSpinner() {
   return (
@@ -57,15 +60,9 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoutes />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/requests" element={<PlaceholderPage title="Requests" />} />
-              <Route
-                path="/requests/new"
-                element={<PlaceholderPage title="New Request" />}
-              />
-              <Route
-                path="/requests/:id"
-                element={<PlaceholderPage title="Request Detail" />}
-              />
+              <Route path="/requests" element={<RequestsListPage />} />
+              <Route path="/requests/new" element={<NewRequestPage />} />
+              <Route path="/requests/:id" element={<RequestDetailPage />} />
               <Route
                 path="/pipelines"
                 element={
