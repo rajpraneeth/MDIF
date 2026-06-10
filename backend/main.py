@@ -14,7 +14,14 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from api.routers import auth, connections, environments, schema_objects, users
+from api.routers import (
+    auth,
+    connections,
+    environments,
+    requests,
+    schema_objects,
+    users,
+)
 from core.config import settings
 from db.base import engine
 
@@ -73,6 +80,7 @@ app.include_router(users.router, prefix=api_v1)
 app.include_router(environments.router, prefix=api_v1)
 app.include_router(connections.router, prefix=api_v1)
 app.include_router(schema_objects.router, prefix=api_v1)
+app.include_router(requests.router, prefix=api_v1)
 
 
 @app.get("/health")
