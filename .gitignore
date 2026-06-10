@@ -1,2 +1,24 @@
 # guildly agent workspace (linked project) — unstaged by default
 .guildly/
+
+# env
+.env
+.env.local
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# node / frontend
+node_modules/
+dist/
+*.log
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
