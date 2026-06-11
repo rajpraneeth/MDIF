@@ -8,10 +8,12 @@ interface DialogProps {
   children: ReactNode;
   /** "modal" centers; "drawer" slides in from the right. */
   variant?: "modal" | "drawer";
+  /** Extra classes for the panel — e.g. a wider max-w for wizards. */
+  className?: string;
 }
 
 /** Lightweight dialog/drawer on the shadcn token palette (no portal deps). */
-export function Dialog({ open, onClose, children, variant = "modal" }: DialogProps) {
+export function Dialog({ open, onClose, children, variant = "modal", className }: DialogProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -35,8 +37,9 @@ export function Dialog({ open, onClose, children, variant = "modal" }: DialogPro
         className={cn(
           "bg-background shadow-lg",
           variant === "modal"
-            ? "w-full max-w-md rounded-lg border p-6"
+            ? "max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border p-6"
             : "h-full w-full max-w-md overflow-y-auto border-l p-6",
+          className,
         )}
       >
         {children}

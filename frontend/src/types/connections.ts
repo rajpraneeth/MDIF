@@ -44,5 +44,14 @@ export interface SchemaObjectTree {
 export interface EnvironmentRead {
   id: string;
   name: string;
+  base_url: string | null;
   description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface EnvironmentCreate {
+  name: string;
+  base_url?: string;
+  description?: string;
 }
