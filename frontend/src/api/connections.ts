@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, type Envelope, type Paginated } from "@/api/client";
 import type {
   ConnectionRead,
+  EnvironmentCreate,
   EnvironmentRead,
   SchemaObjectTree,
 } from "@/types/connections";
@@ -41,5 +42,16 @@ export function useEnvironments() {
       });
       return res.data.data;
     },
+  });
+}
+
+export function useCreateEnvironment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: EnvironmentCreate) => {
+      const res = await api.post<Envelope<EnvironmentRead>>("/environments", body);
+      return res.data.data;
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["environments", "list"] }),
   });
 }

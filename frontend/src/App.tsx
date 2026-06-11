@@ -15,6 +15,9 @@ const RequestDetailPage = lazy(() => import("@/pages/requests/RequestDetailPage"
 const PipelinesListPage = lazy(() => import("@/pages/pipelines/PipelinesListPage"));
 const NewPipelinePage = lazy(() => import("@/pages/pipelines/NewPipelinePage"));
 const PipelineDetailPage = lazy(() => import("@/pages/pipelines/PipelineDetailPage"));
+const PromotionsPage = lazy(() => import("@/pages/admin/PromotionsPage"));
+const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const EnvironmentsPage = lazy(() => import("@/pages/admin/EnvironmentsPage"));
 
 function FullScreenSpinner() {
   return (
@@ -103,7 +106,7 @@ export default function App() {
                 path="/environments"
                 element={
                   <RequireRole roles={ADMIN_ONLY}>
-                    <PlaceholderPage title="Environments" />
+                    <EnvironmentsPage />
                   </RequireRole>
                 }
               />
@@ -111,7 +114,7 @@ export default function App() {
                 path="/promotions"
                 element={
                   <RequireRole roles={ADMIN_ONLY}>
-                    <PlaceholderPage title="Promotions" />
+                    <PromotionsPage />
                   </RequireRole>
                 }
               />
@@ -119,7 +122,7 @@ export default function App() {
                 path="/admin/users"
                 element={
                   <RequireRole roles={ADMIN_ONLY}>
-                    <PlaceholderPage title="Users" />
+                    <UsersPage />
                   </RequireRole>
                 }
               />
