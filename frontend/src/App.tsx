@@ -12,6 +12,9 @@ const PlaceholderPage = lazy(() => import("@/pages/PlaceholderPage"));
 const RequestsListPage = lazy(() => import("@/pages/requests/RequestsListPage"));
 const NewRequestPage = lazy(() => import("@/pages/requests/NewRequestPage"));
 const RequestDetailPage = lazy(() => import("@/pages/requests/RequestDetailPage"));
+const PipelinesListPage = lazy(() => import("@/pages/pipelines/PipelinesListPage"));
+const NewPipelinePage = lazy(() => import("@/pages/pipelines/NewPipelinePage"));
+const PipelineDetailPage = lazy(() => import("@/pages/pipelines/PipelineDetailPage"));
 
 function FullScreenSpinner() {
   return (
@@ -67,7 +70,7 @@ export default function App() {
                 path="/pipelines"
                 element={
                   <RequireRole roles={DE_PLUS}>
-                    <PlaceholderPage title="Pipelines" />
+                    <PipelinesListPage />
                   </RequireRole>
                 }
               />
@@ -75,7 +78,7 @@ export default function App() {
                 path="/pipelines/new"
                 element={
                   <RequireRole roles={DE_PLUS}>
-                    <PlaceholderPage title="New Pipeline" />
+                    <NewPipelinePage />
                   </RequireRole>
                 }
               />
@@ -83,7 +86,7 @@ export default function App() {
                 path="/pipelines/:id"
                 element={
                   <RequireRole roles={DE_PLUS}>
-                    <PlaceholderPage title="Pipeline Detail" />
+                    <PipelineDetailPage />
                   </RequireRole>
                 }
               />
