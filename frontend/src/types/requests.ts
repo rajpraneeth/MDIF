@@ -14,6 +14,8 @@ export type IngestionMode = "full" | "incremental" | "cdc";
 export interface FilterConfig {
   watermark_column?: string | null;
   filter_expr?: string | null;
+  /** Column subset for table objects; null/absent = all columns. */
+  columns?: string[] | null;
 }
 
 export interface SourceObjectEntry {

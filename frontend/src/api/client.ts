@@ -16,7 +16,14 @@ export interface Paginated<T> {
   page_size: number;
 }
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+// VITE_API_BASE_URL may be a bare origin (the documented .env uses
+// http://localhost:8000) or already include the /api/v1 prefix — accept both.
+function normalizeBaseURL(raw: string | undefined): string {
+  const url = (raw || "http://localhost:8000").replace(/\/+$/, "");
+  return /\/api\/v\d+$/.test(url) ? url : `${url}/api/v1`;
+}
+
+const baseURL = normalizeBaseURL(import.meta.env.VITE_API_BASE_URL);
 
 export const api = axios.create({
   baseURL,
