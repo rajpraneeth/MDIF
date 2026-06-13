@@ -5,6 +5,7 @@ import type {
   ConnectionRead,
   EnvironmentCreate,
   EnvironmentRead,
+  SchemaObjectDetail,
   SchemaObjectTree,
 } from "@/types/connections";
 
@@ -30,6 +31,33 @@ export function useConnectionObjects(connectionId: string | undefined) {
       );
       return res.data.data;
     },
+  });
+}
+
+export function useSchemaObject(objectId: string | undefined) {
+  return useQuery({
+    queryKey: ["schema-objects", "detail", objectId ?? ""],
+    enabled: Boolean(objectId),
+    queryFn: async () => {
+      const res = await api.get<Envelope<SchemaObjectDetail>>(
+        `/schema-objects/${objectId}`,
+      );
+      return res.data.data;
+    },
+  });
+}
+
+export function useRunDiscovery() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (connectionId: string) => {
+      const res = await api.post<Envelope<unknown>>(
+        `/connections/${connectionId}/discover`,
+      );
+      return res.data;
+    },
+    onSuccess: (_data, connectionId) =>
+      void qc.invalidateQueries({ queryKey: ["connections", "objects", connectionId] }),
   });
 }
 

@@ -41,6 +41,26 @@ export interface SchemaObjectTree {
   databases: SchemaTreeDatabase[];
 }
 
+export interface SchemaObjectColumn {
+  name: string;
+  type?: string | null;
+}
+
+/** Full object detail from GET /schema-objects/{id} (columns JSONB + profiling). */
+export interface SchemaObjectDetail {
+  id: string;
+  connection_id: string;
+  database_name: string | null;
+  schema_name: string | null;
+  object_name: string;
+  object_type: SchemaObjectType;
+  columns: SchemaObjectColumn[] | null;
+  row_count: number | null;
+  last_profiled_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface EnvironmentRead {
   id: string;
   name: string;
