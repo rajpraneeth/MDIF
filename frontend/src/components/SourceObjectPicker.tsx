@@ -1,20 +1,98 @@
 import { ChevronDown, ChevronRight, Database, Settings2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useConnectionObjects, useConnections } from "@/api/connections";
+import {
+  useConnectionObjects,
+  useConnections,
+  useRunDiscovery,
+  useSchemaObject,
+} from "@/api/connections";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { SchemaTreeObject } from "@/types/connections";
+import { useAuthStore } from "@/stores/authStore";
+import { DE_PLUS } from "@/types/auth";
+import type { SchemaObjectType, SchemaTreeObject } from "@/types/connections";
 import type { SourceObjectEntry } from "@/types/requests";
 
 /** Picker state keeps display info alongside the API entry for chips/review. */
 export interface PickedObject extends SourceObjectEntry {
   object_name: string;
   connection_name: string;
+  object_type: SchemaObjectType;
+}
+
+interface ColumnSubsetPickerProps {
+  objectId: string;
+  /** null/undefined = all columns. */
+  selected: string[] | null | undefined;
+  onChange: (columns: string[] | null) => void;
+}
+
+/** Column checkboxes for a table object, fed by GET /schema-objects/{id}. */
+function ColumnSubsetPicker({ objectId, selected, onChange }: ColumnSubsetPickerProps) {
+  const detail = useSchemaObject(objectId);
+  const columns = detail.data?.columns ?? [];
+  const allSelected = selected == null;
+
+  function toggleColumn(name: string) {
+    const current = allSelected ? columns.map((c) => c.name) : (selected ?? []);
+    const next = current.includes(name)
+      ? current.filter((c) => c !== name)
+      : [...current, name];
+    // Selecting every column collapses back to "all" (null).
+    onChange(next.length === columns.length ? null : next);
+  }
+
+  if (detail.isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading columns…</p>;
+  }
+  if (detail.isError) {
+    return <p className="text-sm text-destructive">Failed to load columns.</p>;
+  }
+  if (columns.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No column metadata for this table — all columns will be ingested.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+        <input
+          type="checkbox"
+          className="h-4 w-4 rounded border-input"
+          checked={allSelected}
+          onChange={() => onChange(allSelected ? [] : null)}
+        />
+        All columns
+      </label>
+      <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border p-2">
+        {columns.map((col) => (
+          <label
+            key={col.name}
+            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent"
+          >
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-input"
+              checked={allSelected || (selected ?? []).includes(col.name)}
+              onChange={() => toggleColumn(col.name)}
+            />
+            <span>{col.name}</span>
+            {col.type && (
+              <span className="text-xs text-muted-foreground">{col.type}</span>
+            )}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 interface SourceObjectPickerProps {
@@ -30,6 +108,9 @@ export function SourceObjectPicker({ envId, value, onChange }: SourceObjectPicke
 
   const connections = useConnections(envId);
   const tree = useConnectionObjects(connectionId || undefined);
+  const discovery = useRunDiscovery();
+  const role = useAuthStore((s) => s.user?.role);
+  const canDiscover = Boolean(role && DE_PLUS.includes(role));
 
   const selectedIds = useMemo(
     () => new Set(value.map((v) => v.schema_object_id)),
@@ -48,6 +129,7 @@ export function SourceObjectPicker({ envId, value, onChange }: SourceObjectPicke
           schema_object_id: obj.id,
           object_name: obj.object_name,
           connection_name: connectionName,
+          object_type: obj.object_type,
           alias: null,
           filter_config: null,
         },
@@ -96,9 +178,31 @@ export function SourceObjectPicker({ envId, value, onChange }: SourceObjectPicke
               Failed to load objects for this connection.
             </p>
           ) : tree.data && tree.data.databases.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">
-              No discovered objects. Run discovery on the connection first.
-            </p>
+            <div className="space-y-2 p-4">
+              <p className="text-sm text-muted-foreground">
+                No discovered objects on this connection yet.
+              </p>
+              {canDiscover ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={discovery.isPending}
+                  onClick={() => discovery.mutate(connectionId)}
+                >
+                  {discovery.isPending ? "Running discovery…" : "Run discovery"}
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Ask a data engineer to run discovery, or pick another connection.
+                </p>
+              )}
+              {discovery.isError && (
+                <p className="text-sm text-destructive">
+                  Discovery failed — try again or check the connection.
+                </p>
+              )}
+            </div>
           ) : (
             <div className="max-h-72 overflow-y-auto p-2">
               {tree.data?.databases.map((db, di) => {
@@ -194,7 +298,11 @@ export function SourceObjectPicker({ envId, value, onChange }: SourceObjectPicke
                 className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
               >
                 {v.alias || v.object_name}
-                <span className="text-muted-foreground">· {v.connection_name}</span>
+                <span className="text-muted-foreground">
+                  · {v.connection_name}
+                  {v.filter_config?.columns != null &&
+                    ` · ${v.filter_config.columns.length} cols`}
+                </span>
                 <button
                   type="button"
                   aria-label={`Configure ${v.object_name}`}
@@ -271,6 +379,20 @@ export function SourceObjectPicker({ envId, value, onChange }: SourceObjectPicke
                 }}
               />
             </div>
+            {configFor.object_type === "table" && (
+              <div className="space-y-2">
+                <Label>Columns</Label>
+                <ColumnSubsetPicker
+                  objectId={configFor.schema_object_id}
+                  selected={configFor.filter_config?.columns}
+                  onChange={(columns) => {
+                    const filter_config = { ...configFor.filter_config, columns };
+                    setConfigFor({ ...configFor, filter_config });
+                    updatePicked(configFor.schema_object_id, { filter_config });
+                  }}
+                />
+              </div>
+            )}
             <Button type="button" className="w-full" onClick={() => setConfigFor(null)}>
               Done
             </Button>

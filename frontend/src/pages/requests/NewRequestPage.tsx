@@ -334,6 +334,8 @@ export default function NewRequestPage() {
                         · {p.connection_name}
                         {p.filter_config?.watermark_column &&
                           ` · watermark: ${p.filter_config.watermark_column}`}
+                        {p.filter_config?.columns != null &&
+                          ` · ${p.filter_config.columns.length} columns`}
                       </span>
                     </li>
                   ))}
